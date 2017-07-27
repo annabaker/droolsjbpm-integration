@@ -441,19 +441,21 @@ public class CaseServicesClientImpl extends AbstractKieServicesClientImpl implem
     }
 
     @Override
-    public List<CaseAdHocFragment> getAdHocFragments(String containerId, String caseId) {
+    public List<CaseAdHocFragment> getAdHocFragments(String containerId, String caseId, Integer page, Integer pageSize) {    	
         CaseAdHocFragmentList list = null;
         if( config.isRest() ) {
             Map<String, Object> valuesMap = new HashMap<String, Object>();
             valuesMap.put(CONTAINER_ID, containerId);
             valuesMap.put(CASE_ID, caseId);
+            
+            String queryString = getPagingQueryString("", page, pageSize);
 
             list = makeHttpGetRequestAndCreateCustomResponse(
                     build(loadBalancer.getUrl(), CASE_URI + "/" + CASE_AD_HOC_FRAGMENTS_GET_URI, valuesMap), CaseAdHocFragmentList.class);
 
         } else {
             CommandScript script = new CommandScript( Collections.singletonList(
-                    (KieServerCommand) new DescriptorCommand("CaseQueryService", "getAdHocFragments", new Object[]{containerId, caseId})) );
+                    (KieServerCommand) new DescriptorCommand("CaseQueryService", "getAdHocFragments", new Object[]{containerId, caseId, page, pageSize})) );
             ServiceResponse<CaseAdHocFragmentList> response = (ServiceResponse<CaseAdHocFragmentList>)
                     executeJmsCommand( script, DescriptorCommand.class.getName(), KieServerConstants.CAPABILITY_CASE ).getResponses().get(0);
 

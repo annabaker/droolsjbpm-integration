@@ -95,7 +95,7 @@ public interface CaseServicesClient {
 
     List<CaseStage> getStages(String containerId, String caseId, boolean activeOnly, Integer page, Integer pageSize);
 
-    List<CaseAdHocFragment> getAdHocFragments(String containerId, String caseId);
+    List<CaseAdHocFragment> getAdHocFragments(String containerId, String caseId, Integer page, Integer pageSize);
 
     List<CaseRoleAssignment> getRoleAssignments(String containerId, String caseId);
 
