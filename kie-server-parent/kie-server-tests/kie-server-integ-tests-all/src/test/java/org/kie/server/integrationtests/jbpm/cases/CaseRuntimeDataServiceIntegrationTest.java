@@ -695,7 +695,7 @@ public class CaseRuntimeDataServiceIntegrationTest extends JbpmKieServerBaseInte
     public void testAdHocFragments() {
         String caseId = startUserTaskCase(USER_YODA, USER_JOHN);
 
-        List<CaseAdHocFragment> caseAdHocFragments = caseClient.getAdHocFragments(CONTAINER_ID, caseId);
+        List<CaseAdHocFragment> caseAdHocFragments = caseClient.getAdHocFragments(CONTAINER_ID, caseId, 0, 10);
         assertEquals(3, caseAdHocFragments.size());
 
         Map<String, CaseAdHocFragment> mappedAdHocFragments = caseAdHocFragments.stream().collect(Collectors.toMap(CaseAdHocFragment::getName, d -> d));
@@ -710,7 +710,7 @@ public class CaseRuntimeDataServiceIntegrationTest extends JbpmKieServerBaseInte
     @Test
     public void testAdHocFragmentsNotExistingCase() {
         try {
-            caseClient.getAdHocFragments(CONTAINER_ID, "not-existing-case");
+            caseClient.getAdHocFragments(CONTAINER_ID, "not-existing-case", 0, 10);
             fail("Should have failed because of non existing case Id.");
         } catch (KieServicesException e) {
             // expected
@@ -720,7 +720,7 @@ public class CaseRuntimeDataServiceIntegrationTest extends JbpmKieServerBaseInte
     @Test
     public void testAdHocFragmentsNotExistingContainer() {
         try {
-            caseClient.getAdHocFragments("not-existing-container", CASE_HR_DEF_ID);
+            caseClient.getAdHocFragments("not-existing-container", CASE_HR_DEF_ID, 0, 10);
             fail("Should have failed because of not existing container.");
         } catch (KieServicesException e) {
             // expected
