@@ -13,11 +13,22 @@
  * limitations under the License.
 */
 
-package org.kie.spring;
+package org.jbpm.data;
 
-public class CodeVersion {
+import org.drools.core.process.instance.WorkItemHandler;
+import org.kie.api.runtime.process.WorkItem;
+import org.kie.api.runtime.process.WorkItemManager;
 
-    // Do not modify this: this is automatically incremented by the maven replacer plugin
-    public final static String VERSION = "7.6.0-SNAPSHOT";
+public class HelloWorkItemHandler implements WorkItemHandler {
+
+	public void abortWorkItem(WorkItem wi, WorkItemManager wim) {
+		System.out.println("Oh no, my item aborted..");
+
+	}
+
+	public void executeWorkItem(WorkItem wi, WorkItemManager wim) {
+		System.out.println("Hello World!");
+		wim.completeWorkItem(wi.getId(), null);
+	}
 
 }
