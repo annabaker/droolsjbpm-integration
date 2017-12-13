@@ -52,6 +52,7 @@ public abstract class JbpmKieServerBaseIntegrationTest extends RestJmsSharedBase
     protected static final String CONTAINER_ID_V2 = "definition-project-v2";
     protected static final String CONTAINER_ID_ALIAS = "definition-project-alias";
     protected static final String BAD_CONTAINER_ID = "bad-definition-project";
+    protected static final String JMS_WIH_CONTAINER_ID = "jms-wih-project";
    
     protected static final String PROCESS_ID_USERTASK = "definition-project.usertask";
     protected static final String PROCESS_ID_EVALUATION = "definition-project.evaluation";
@@ -66,6 +67,7 @@ public abstract class JbpmKieServerBaseIntegrationTest extends RestJmsSharedBase
     protected static final String PROCESS_ID_CUSTOM_TASK = "customtask";
     protected static final String PROCESS_ID_USERTASK_ESCALATION = "humanTaskEscalation";
     protected static final String PROCESS_ID_XYZ_TRANSLATIONS = "xyz-translations";
+    protected static final String PROCESS_ID_JMS_WIH = "jms-wih-project.jms-wih-process";
 
     protected static final long SERVICE_TIMEOUT = 30000;
     protected static final long TIMEOUT_BETWEEN_CALLS = 200;
