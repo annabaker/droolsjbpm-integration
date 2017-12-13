@@ -2,7 +2,7 @@
   <kbase name="mykbase" default="true" eventProcessingMode="stream" equalsBehavior="identity">
     <ksession name="mykasession" type="stateful" default="true" clockType="realtime">
       <workItemHandlers>
-        <workItemHandler type="org.jbpm.data.HelloWorkItemHandler" name="HelloWorkItemHandler"/>
+        <workItemHandler type="org.jbpm.data.JMSWorkItemHandler" name="JMSWorkItemHandler"/>
       </workItemHandlers>
     </ksession>
   </kbase>

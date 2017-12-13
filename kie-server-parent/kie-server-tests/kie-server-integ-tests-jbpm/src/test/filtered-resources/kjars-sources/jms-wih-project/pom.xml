@@ -12,6 +12,15 @@
   <artifactId>jms-wih-project</artifactId>
   <version>1.0.0.Final</version>
   <name>jms-project</name>
+  
+  <dependencies>
+		<dependency>
+			<groupId>org.jbpm</groupId>
+			<artifactId>jbpm-flow</artifactId>
+			<version>7.0.0.Final</version>
+			<scope>provided</scope>
+		</dependency>
+</dependencies>
 
   <build>
     <plugins>
