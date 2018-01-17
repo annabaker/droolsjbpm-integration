@@ -16,24 +16,23 @@
 package org.kie.server.integrationtests.jbpm.jms;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.runners.MethodSorters;
 import org.junit.runners.Parameterized;
 import org.kie.api.KieServices;
-import org.kie.api.runtime.KieContainer;
-import org.kie.api.runtime.KieSession;
 import org.kie.api.runtime.manager.RuntimeManager;
-import org.kie.api.runtime.manager.RuntimeManagerFactory;
 import org.kie.server.api.marshalling.MarshallingFormat;
 import org.kie.server.api.model.KieContainerResource;
 import org.kie.server.api.model.KieContainerResourceList;
@@ -44,18 +43,18 @@ import org.kie.server.api.model.instance.ProcessInstance;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.KieServicesConfiguration;
 import org.kie.server.client.KieServicesFactory;
-import org.kie.server.client.jms.AsyncResponseHandler;
-import org.kie.server.client.jms.BlockingResponseCallback;
-import org.kie.server.client.jms.ResponseCallback;
 import org.kie.server.integrationtests.category.JMSOnly;
 import org.kie.server.integrationtests.jbpm.JbpmKieServerBaseIntegrationTest;
 import org.kie.server.integrationtests.shared.KieServerDeployer;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Category({JMSOnly.class})
 public class JmsWorkItemHandlerXAIntegrationTest extends JbpmKieServerBaseIntegrationTest {
 
     private static final ReleaseId RELEASE_ID = new ReleaseId("org.kie.server.testing", "jms-wih-project", "1.0.0.Final");
-    
+    private static final List<Integer> ACTIVE = Arrays.asList(org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE);
+    private static final List<Integer> COMPLETED = Arrays.asList(org.kie.api.runtime.process.ProcessInstance.STATE_COMPLETED);
+
     private List<KieContainerResource> containers;
     
     // clients
@@ -70,6 +69,7 @@ public class JmsWorkItemHandlerXAIntegrationTest extends JbpmKieServerBaseIntegr
     @Parameterized.Parameters(name = "{index}: {0}")
     public static Collection<Object[]> data() {
         jmsConfiguration = createKieServicesJmsConfiguration();
+        //jmsConfiguration.setJmsTransactional(true);
         Collection<Object[]> parameterData = new ArrayList<>(Arrays.asList(new Object[][]{
                 {MarshallingFormat.JAXB, jmsConfiguration},
                 {MarshallingFormat.JSON, jmsConfiguration},
@@ -79,58 +79,79 @@ public class JmsWorkItemHandlerXAIntegrationTest extends JbpmKieServerBaseIntegr
         return parameterData;
     }
 
+    /* build and install kjar to m2 repository */
     @BeforeClass
     public static void buildAndDeployArtifacts() {
         KieServerDeployer.buildAndDeployCommonMavenParent();
         KieServerDeployer.buildAndDeployMavenProject(ClassLoader.class.getResource("/kjars-sources/jms-wih-project").getFile());
-
-        kieContainer = KieServices.Factory.get().newKieContainer(RELEASE_ID);
-
-        createContainer(CONTAINER_ID, RELEASE_ID);
     }
 
-//    @After
-//    public void resetResponseHandler() {
-//        processClient.setResponseHandler(new RequestReplyResponseHandler());
-//        queryClient.setResponseHandler(new RequestReplyResponseHandler());
-//        taskClient.setResponseHandler(new RequestReplyResponseHandler());
+//    @AfterClass
+//    public static void resetResponseHandler() {
+//    	abortAllProcesses();
 //    }
-
-    @Override
-    protected void addExtraCustomClasses(Map<String, Class<?>> extraClasses) throws Exception {
-        //extraClasses.put(PERSON_CLASS_NAME, Class.forName(PERSON_CLASS_NAME, true, kieContainer.getClassLoader()));
-    }
     
     @Test
-    public void testKieContainerDeployment() throws Exception {
-        kieServicesClient = KieServicesFactory.newKieServicesClient(jmsConfiguration);
-        response = kieServicesClient.listContainers();
+    public void A_testKjarDeploysSuccessfully() throws Exception {
+    	
+    	kieContainer = KieServices.Factory.get().newKieContainer(RELEASE_ID);  	
+    	
+    	createContainer(JMS_WIH_CONTAINER_ID, RELEASE_ID);
+    	
+        response = client.listContainers();
         containers = response.getResult().getContainers();
         
         assertTrue(containers.size() == 1);
-        System.out.println("RESPONSE: " + response.getResult().toString());
     }
 
     @Test
-    public void testWIHGetsCalled() throws Exception {
+    public void B_testWIHGetsCalled() throws Exception {
     	
-    	kieServicesClient = KieServicesFactory.newKieServicesClient(jmsConfiguration);
-        response = kieServicesClient.listContainers();
-        containers = response.getResult().getContainers();
-    	System.out.println("CONTAINER SIZE BEFORE: " + containers.size());
+    	List<ProcessInstance> processInstances = queryClient.findProcessInstances(0, 10);
+    	assertEquals(0, processInstances.size());
     	
-    	List<ProcessInstance> processes = processClient.findProcessInstances(JMS_WIH_CONTAINER_ID, 0, 10);
-    	assertEquals(processes.size(), 0);
-    	
-    	ProcessDefinition processDefinition = processClient.getProcessDefinition(JMS_WIH_CONTAINER_ID, PROCESS_ID_JMS_WIH);
-    	
-    	Long processId = processClient.startProcess(JMS_WIH_CONTAINER_ID, PROCESS_ID_JMS_WIH);
+    	processClient.startProcess(JMS_WIH_CONTAINER_ID, PROCESS_ID_JMS_WIH);
+    	//List<ProcessInstance> activeProcesses = queryClient.findProcessInstancesByStatus(ACTIVE, 0, 100);
+    	//assertEquals(1, activeProcesses.size());
+
+    	processInstances = queryClient.findProcessInstances(0, 10);
+    	assertEquals(1, processInstances.size());
     	
     	
+        
+//        state.clear();
+          //state.add(org.kie.api.runtime.process.ProcessInstance.STATE_COMPLETED);
+//        while(queryClient.findProcessInstancesByStatus(state, 0, 100).size() == 0) {
+//        	this.wait(); 
+//        	System.out.println("Waiting...");
+//        }
+        
+        
+        
+        
+    }
+    
+    @Test
+    public void C_testWIHGetsCalled() throws Exception {
     	
-    	System.out.println("CONTAINER SIZE AFTER: " + containers.size());
-	
-        assertEquals(1,1);
+    	List<ProcessInstance> activeProcesses = queryClient.findProcessInstancesByStatus(COMPLETED, 0, 100);
+    	for (ProcessInstance pi : activeProcesses) {
+    		System.out.println(pi.toString());
+    	}
+
+    	
+    	
+        
+//        state.clear();
+          //state.add(org.kie.api.runtime.process.ProcessInstance.STATE_COMPLETED);
+//        while(queryClient.findProcessInstancesByStatus(state, 0, 100).size() == 0) {
+//        	this.wait(); 
+//        	System.out.println("Waiting...");
+//        }
+        
+        
+        
+        
     }
 
-}
+} 
